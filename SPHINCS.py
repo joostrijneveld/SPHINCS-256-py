@@ -16,6 +16,8 @@ Options:
 import sys
 import docopt
 
+from ChaCha import ChaCha
+from bytes_utils import xor
 
 
 class SPHINCS(object):
@@ -40,6 +42,10 @@ class SPHINCS(object):
         self.tau = tau
         self.t = 1 << tau
         self.k = k
+
+        C = bytes("expand 32-byte to 64-byte state!", 'latin-1')
+
+        self.F = lambda m: ChaCha().permuted(m + C)[:32]
 
     def keygen(self):
         return bytes()
