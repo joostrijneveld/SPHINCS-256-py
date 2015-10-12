@@ -9,21 +9,24 @@ class ChaCha(object):
     def __init__(self, key=None, iv=None, rounds=12):
         assert rounds & 1 == 0
         self.rounds = rounds
-        if key is not None and iv is not None:
-            assert len(key) in [16, 32]
-            assert len(iv) == 8
-            self.state = []
-            if len(key) == 32:
-                c = bytes(sigma, 'latin-1')
-                self.state += ints_from_4bytes(c)
-                self.state += ints_from_4bytes(key)
-            elif len(key) == 16:
-                c = bytes(tau, 'latin-1')
-                self.state += ints_from_4bytes(c)
-                self.state += ints_from_4bytes(key)
-                self.state += ints_from_4bytes(key)
-            self.state += [0, 0]
-            self.state += ints_from_4bytes(iv)
+        if key is None:
+            key = bytes(32)
+        if iv is None:
+            iv = bytes(8)
+        assert len(key) in [16, 32]
+        assert len(iv) == 8
+        self.state = []
+        if len(key) == 32:
+            c = bytes(sigma, 'latin-1')
+            self.state += ints_from_4bytes(c)
+            self.state += ints_from_4bytes(key)
+        elif len(key) == 16:
+            c = bytes(tau, 'latin-1')
+            self.state += ints_from_4bytes(c)
+            self.state += ints_from_4bytes(key)
+            self.state += ints_from_4bytes(key)
+        self.state += [0, 0]
+        self.state += ints_from_4bytes(iv)
 
     def permuted(self, a):
         """Takes 16 integers or 64 bytes, returns the ChaCha-permuted bytes
