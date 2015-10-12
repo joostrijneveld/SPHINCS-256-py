@@ -66,11 +66,15 @@ class ChaCha(object):
 
         return b''.join(ints_to_4bytes(x))
 
-    def keystream(self):
-        """Returns 64 bytes of keystream starting from the current state"""
-        output = self.permuted(self.state)
-        self.state[12] += 1
-        if self.state[12] & 0xFFFFFFFF == 0:
-            self.state[13] += 1
-            # stopping at 2^70 bytes per nonce is user's responsibility
+    def keystream(self, N=64):
+        """Returns N bytes of keystream starting from the current state
+
+        Note that if N is not a multiple of 64, some keystream is discarded."""
+        output = bytes()
+        for n in range(N, 0, -64):
+            output += self.permuted(self.state)[:min(n, 64)]
+            self.state[12] += 1
+            if self.state[12] & 0xFFFFFFFF == 0:
+                self.state[13] += 1
+                # stopping at 2^70 bytes per nonce is user's responsibility
         return output
