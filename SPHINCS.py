@@ -16,7 +16,6 @@ Options:
 import sys
 import docopt
 
-args = docopt.docopt(__doc__)
 
 
 class SPHINCS(object):
@@ -52,7 +51,7 @@ class SPHINCS(object):
         return 0
 
 if __name__ == "__main__":
-
+    args = docopt.docopt(__doc__)
     sphincs256 = SPHINCS()
 
     for f in ['--input', '--output']:
