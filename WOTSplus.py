@@ -6,6 +6,13 @@ from bytes_utils import xor, chunkbytes
 class WOTSplus(object):
 
     def __init__(self, n, w, F, Gl):
+        """Initializes WOTS+
+
+        n -- length of hashes (in bits)
+        w -- Winternitz parameter; chain length and block size trade-off
+        F -- function used to construct chains (n/8 bytes -> n/8 bytes)
+        Gl -- PRG to generate the chain bases, based on seed and no. of bytes
+        """
         self.n = n
         self.w = w
         self.l1 = ceil(n / log2(w))
