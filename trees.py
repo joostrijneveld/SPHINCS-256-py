@@ -15,3 +15,21 @@ def l_tree(H, leafs):
             next_layer.append(layer[-1])
         layer = next_layer
         yield layer
+
+
+def auth_path(tree, idx):
+    for layer in tree[:-1]:  # leave away the top layer
+        idx += 1 if (idx & 1 == 0) else -1  # neighbor node
+        yield layer[idx]
+        idx >>= 1  # parent node
+
+
+def construct_root(H, auth_path, leaf, idx):
+    node = leaf
+    for i, neighbor in enumerate(auth_path):
+        if idx & 1 == 0:
+            node = H(node, neighbor, i)
+        else:
+            node = H(neighbor, node, i)
+        idx >>= 1
+    return node
