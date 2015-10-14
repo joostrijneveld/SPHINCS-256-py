@@ -45,8 +45,10 @@ class SPHINCS(object):
 
         C = bytes("expand 32-byte to 64-byte state!", 'latin-1')
 
-        self.F = lambda m: ChaCha().permuted(m + C)[:32]
-        self.Gl = lambda seed, n: ChaCha(key=seed).keystream(n)
+        perm = ChaCha().permuted
+        self.F = lambda m: perm(m + C)[:32]
+        self.H = lambda m1, m2: perm(xor(perm(m1 + C), m2 + bytes(32)))[:32]
+        self.Glambda = lambda seed, n: ChaCha(key=seed).keystream(n)
 
     def keygen(self):
         return bytes()
