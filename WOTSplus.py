@@ -19,7 +19,7 @@ class WOTSplus(object):
         self.l2 = floor(log2(self.l1 * (w - 1)) / log2(w)) + 1
         self.l = self.l1 + self.l2
         self.F = F
-        self.Gl = Gl
+        self.Gl = lambda seed: Gl(seed=seed, n=self.l * self.n // 8)
 
     def chains(self, x, masks, chainrange):
         x = list(x)
@@ -41,12 +41,12 @@ class WOTSplus(object):
         return M + C
 
     def keygen(self, seed, masks):
-        sk = self.Gl(seed, self.l * self.n // 8)
+        sk = self.Gl(seed)
         sk = chunkbytes(sk, self.n // 8)
         return self.chains(sk, masks, [range(0, self.w-1)]*self.l)
 
     def sign(self, m, seed, masks):
-        sk = self.Gl(seed, self.l * self.n // 8)
+        sk = self.Gl(seed)
         sk = chunkbytes(sk, self.n // 8)
         B = self.chainlengths(m)
         return self.chains(sk, masks, [range(0, b) for b in B])

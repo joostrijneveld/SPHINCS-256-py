@@ -23,7 +23,7 @@ class HORST(object):
         self.t = 1 << tau
         self.F = F
         self.H = H
-        self.Gt = Gt
+        self.Gt = lambda seed: Gt(seed=seed, n=self.t * self.n // 8)
 
     def message_indices(self, m):
         M = chunkbytes(m, self.tau // 8)
@@ -31,7 +31,7 @@ class HORST(object):
         return M
 
     def keygen(self, seed, masks):
-        sk = self.Gt(seed, self.t * self.n // 8)
+        sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
@@ -39,7 +39,7 @@ class HORST(object):
         return tree[-1][0]  # pk is the root node
 
     def sign(self, m, seed, masks):
-        sk = self.Gt(seed, self.t * self.n // 8)
+        sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
