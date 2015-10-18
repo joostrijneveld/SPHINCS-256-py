@@ -1,5 +1,5 @@
 import itertools
-from trees import hash_tree, auth_path, construct_root
+from trees import hash_tree, auth_path, construct_root, root
 from bytes_utils import xor, chunkbytes
 
 
@@ -41,8 +41,7 @@ class HORST(object):
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
-        tree = list(hash_tree(H, L))
-        return tree[-1][0]  # pk is the root node
+        return root(hash_tree(H, L))
 
     def sign(self, m, seed, masks):
         assert len(m) == self.m // 8
@@ -77,4 +76,4 @@ class HORST(object):
                 return False
         Qtop = masks[2*(self.tau - self.x):]
         H = lambda x, y, i: self.H(xor(x, Qtop[2*i]), xor(y, Qtop[2*i+1]))
-        return list(hash_tree(H, sigma_k))[-1][0]
+        return root(hash_tree(H, sigma_k))

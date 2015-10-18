@@ -37,3 +37,7 @@ def construct_root(H, auth_path, leaf, idx):
             node = H(neighbor, node, i)
         idx >>= 1
     return node
+
+
+def root(tree):
+    return list(tree)[-1][0]
