@@ -27,10 +27,14 @@ class HORST(object):
 
     def message_indices(self, m):
         M = chunkbytes(m, self.tau // 8)
-        M = [int.from_bytes(Mi, byteorder=sys.byteorder) for Mi in M]
+        # the reference implementation uses 'idx = m[2*i] + (m[2*i+1]<<8)'
+        # which suggests using little-endian byte order
+        M = [int.from_bytes(Mi, byteorder='little') for Mi in M]
         return M
 
     def keygen(self, seed, masks):
+        assert len(seed) == self.n // 8
+        assert len(masks) == 2 * self.tau
         sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
@@ -39,15 +43,20 @@ class HORST(object):
         return tree[-1][0]  # pk is the root node
 
     def sign(self, m, seed, masks):
+        assert len(m) == self.m // 8
+        assert len(seed) == self.n // 8
+        assert len(masks) == 2 * self.tau
         sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
         tree = list(hash_tree(H, L))
         M = self.message_indices(m)
-        return [(sk[i], auth_path(tree, i)) for i in M]
+        return [(sk[Mi], auth_path(tree, Mi)) for Mi in M]
 
     def verify(self, m, sig, masks):
+        assert len(m) == self.m // 8
+        assert len(masks) == 2 * self.tau
         M = self.message_indices(m)
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
         root = None
