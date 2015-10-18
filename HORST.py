@@ -36,7 +36,7 @@ class HORST(object):
 
     def keygen(self, seed, masks):
         assert len(seed) == self.n // 8
-        assert len(masks) == 2 * self.tau
+        assert len(masks) >= 2 * self.tau
         sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
@@ -46,7 +46,7 @@ class HORST(object):
     def sign(self, m, seed, masks):
         assert len(m) == self.m // 8
         assert len(seed) == self.n // 8
-        assert len(masks) == 2 * self.tau
+        assert len(masks) >= 2 * self.tau
         sk = self.Gt(seed)
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
@@ -61,7 +61,7 @@ class HORST(object):
 
     def verify(self, m, sig, masks):
         assert len(m) == self.m // 8
-        assert len(masks) == 2 * self.tau
+        assert len(masks) >= 2 * self.tau
         M = self.message_indices(m)
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
         sigma_k = sig[-1]
