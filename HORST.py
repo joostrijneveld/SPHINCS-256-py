@@ -1,4 +1,3 @@
-import sys
 import itertools
 from trees import hash_tree, auth_path, construct_root
 from bytes_utils import xor, chunkbytes
@@ -57,6 +56,8 @@ class HORST(object):
         trunk = list(itertools.islice(tree, 0, self.tau - self.x))
         sigma_k = next(tree)
         M = self.message_indices(m)
+        # the SPHINCS paper suggests to put sigma_k at the end of sigma
+        # but the reference code places it at the front
         return [(sk[Mi], auth_path(trunk, Mi)) for Mi in M] + [sigma_k]
 
     def verify(self, m, sig, masks):
