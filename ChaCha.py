@@ -76,5 +76,4 @@ class ChaCha(object):
             self.state[12] += 1
             if self.state[12] & 0xFFFFFFFF == 0:
                 self.state[13] += 1
-                # stopping at 2^70 bytes per nonce is user's responsibility
         return output

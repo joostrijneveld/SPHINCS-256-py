@@ -64,10 +64,12 @@ def test_chacha_TCs():
         assert tc['state'] == chacha.state
         assert all(block == chacha.keystream() for block in tc['stream'])
 
+
 def test_streamblocks():
     chacha = ChaCha()
     stream1024 = b''.join([chacha.keystream(64) for _ in range(16)])
     assert ChaCha().keystream(1024) == stream1024
+
 
 def test_halfblock():
     assert ChaCha().keystream(37) == ChaCha().keystream(64)[:37]

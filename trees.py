@@ -7,7 +7,7 @@ def hash_tree(H, leafs):
 
 
 def l_tree(H, leafs):
-    layer = list(leafs)
+    layer = leafs
     yield layer
     for i in range(ceil(log2(len(leafs)))):
         next_layer = [H(l, r, i) for l, r in zip(layer[0::2], layer[1::2])]
@@ -18,10 +18,12 @@ def l_tree(H, leafs):
 
 
 def auth_path(tree, idx):
+    path = []
     for layer in tree[:-1]:  # leave away the top layer
         idx += 1 if (idx & 1 == 0) else -1  # neighbor node
-        yield layer[idx]
+        path.append(layer[idx])
         idx >>= 1  # parent node
+    return path
 
 
 def construct_root(H, auth_path, leaf, idx):
