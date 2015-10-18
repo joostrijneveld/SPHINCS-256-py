@@ -1,4 +1,5 @@
 import sys
+import itertools
 from trees import hash_tree, auth_path, construct_root
 from bytes_utils import xor, chunkbytes
 
@@ -23,6 +24,8 @@ class HORST(object):
         self.t = 1 << tau
         self.F = F
         self.H = H
+        # minimising k(tau - x + 1) + 2^{x} implies maximising 'k*x - 2^{x}'
+        self.x = max((k * x - (1 << x), x) for x in range(tau))[1]
         self.Gt = lambda seed: Gt(seed=seed, n=self.t * self.n // 8)
 
     def message_indices(self, m):
@@ -50,21 +53,27 @@ class HORST(object):
         sk = chunkbytes(sk, self.n // 8)
         L = list(map(self.F, sk))
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
-        tree = list(hash_tree(H, L))
+        tree = hash_tree(H, L)
+        trunk = list(itertools.islice(tree, 0, self.tau - self.x))
+        sigma_k = next(tree)
         M = self.message_indices(m)
-        return [(sk[Mi], auth_path(tree, Mi)) for Mi in M]
+        return [(sk[Mi], auth_path(trunk, Mi)) for Mi in M] + [sigma_k]
 
     def verify(self, m, sig, masks):
         assert len(m) == self.m // 8
         assert len(masks) == 2 * self.tau
         M = self.message_indices(m)
         H = lambda x, y, i: self.H(xor(x, masks[2*i]), xor(y, masks[2*i+1]))
-        root = None
+        sigma_k = sig[-1]
         for (sk, path), Mi in zip(sig, M):
             leaf = self.F(sk)
             r = construct_root(H, path, leaf, Mi)
-            if root is None:
-                root = r
-            elif root != r:
+            # there is an error in the SPHINCS paper for this formula, as it
+            # states that y_i = floor(M_i / 2^tau - x)
+            # rather than y_i = floor(M_i / 2^{tau - x})
+            yi = Mi // (1 << (self.tau - self.x))
+            if r != sigma_k[yi]:
                 return False
-        return root
+        Qtop = masks[2*(self.tau - self.x):]
+        H = lambda x, y, i: self.H(xor(x, Qtop[2*i]), xor(y, Qtop[2*i+1]))
+        return list(hash_tree(H, sigma_k))[-1][0]

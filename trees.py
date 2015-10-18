@@ -19,7 +19,9 @@ def l_tree(H, leafs):
 
 def auth_path(tree, idx):
     path = []
-    for layer in tree[:-1]:  # leave away the top layer
+    for layer in tree:
+        if len(layer) == 1:  # if there are no neighbors
+            break
         idx += 1 if (idx & 1 == 0) else -1  # neighbor node
         path.append(layer[idx])
         idx >>= 1  # parent node
