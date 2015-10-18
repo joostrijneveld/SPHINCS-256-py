@@ -55,9 +55,10 @@ class HORST(object):
         trunk = list(itertools.islice(tree, 0, self.tau - self.x))
         sigma_k = next(tree)
         M = self.message_indices(m)
+        pk = root(tree)
         # the SPHINCS paper suggests to put sigma_k at the end of sigma
         # but the reference code places it at the front
-        return [(sk[Mi], auth_path(trunk, Mi)) for Mi in M] + [sigma_k]
+        return ([(sk[Mi], auth_path(trunk, Mi)) for Mi in M] + [sigma_k], pk)
 
     def verify(self, m, sig, masks):
         assert len(m) == self.m // 8

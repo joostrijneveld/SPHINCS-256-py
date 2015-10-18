@@ -13,8 +13,9 @@ def test_horst():
     horst = HORST(n=n, m=m, k=m // tau, tau=tau,
                   F=SPHINCS().F, H=SPHINCS().H, Gt=SPHINCS().Glambda)
     pk = horst.keygen(seed, masks)
-    sig = horst.sign(M, seed, masks)
+    sig, pk_sig = horst.sign(M, seed, masks)
     assert pk == horst.verify(M, sig, masks)
+    assert pk == pk_sig
 
 
 def test_message_indices():
@@ -40,8 +41,7 @@ def test_horst_ref():
     masks = [bytes(range(i, 32+i)) for i in range(2*tau)]
     horst = HORST(n=n, m=m, k=m / tau, tau=tau,
                   F=SPHINCS().F, H=SPHINCS().H, Gt=SPHINCS().Glambda)
-    pk = horst.keygen(seed, masks)
-    sig = horst.sign(M, seed, masks)
+    sig, pk = horst.sign(M, seed, masks)
     assert pk == horst.verify(M, sig, masks)
     # swap sigma_k to the start to match SPHINCS reference implementation
     sig = [sig[-1]] + sig[:-1]
