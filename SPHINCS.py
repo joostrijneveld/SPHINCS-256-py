@@ -90,13 +90,17 @@ class SPHINCS(object):
         SK2 = os.urandom(self.n // 8)
         p = max(self.w-1, 2 * (self.h + ceil(log(self.wots.l, 2))), 2*self.tau)
         Q = [os.urandom(self.n // 8) for _ in range(p)]
+        PK1 = self.keygen_pub(SK1, Q)
+        return (SK1, SK2, Q), (PK1, Q)
+
+    def keygen_pub(self, SK1, Q):
         addresses = [self.address(self.d - 1, 0, i)
                      for i in range(1 << (self.h//self.d))]
         leafs = [self.wots_leaf(A, SK1, Q) for A in addresses]
         Qtree = Q[2 * ceil(log(self.wots.l, 2)):]
         H = lambda x, y, i: self.H(xor(x, Qtree[2*i]), xor(y, Qtree[2*i+1]))
         PK1 = root(hash_tree(H, leafs))
-        return ((SK1, SK2, Q), (PK1, Q))
+        return PK1
 
     def sign(self, M, SK):
         SK1, SK2, Q = SK

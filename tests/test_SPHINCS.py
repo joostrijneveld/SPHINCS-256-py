@@ -17,3 +17,16 @@ def test_SPHINCS():
     sk, pk = sphincs.keygen()
     sig = sphincs.sign(M, sk)
     assert sphincs.verify(M, sig, pk)
+
+
+def test_SPHINCS_ref():
+    sphincs = SPHINCS()
+    M = bytes(range(0, 256))
+    Q = [bytes(range(i, 32+i)) for i in range(32)]
+    SK1 = bytes(range(0, 32))
+    SK2 = bytes(range(32, 64))
+    PK1 = sphincs.keygen_pub(SK1, Q)
+    sk, pk = (SK1, SK2, Q), (PK1, Q)
+    sig = sphincs.sign(M, sk)
+    assert sphincs.verify(M, sig, pk)
+    # assert sig == bytes(..) # TODO check if this matches reference code
