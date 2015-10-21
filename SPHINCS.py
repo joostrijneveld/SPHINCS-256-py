@@ -66,7 +66,7 @@ class SPHINCS(object):
     @classmethod
     def address(self, level, subtree, leaf):
         t = level | (subtree << 4) | (leaf << 59)
-        return bytes([(t >> 8*i) & 0xff for i in range(8)])
+        return int.to_bytes(t, length=8, byteorder='little')
 
     def wots_leaf(self, address, SK1, masks):
         seed = self.Fa(address, SK1)
@@ -107,7 +107,7 @@ class SPHINCS(object):
         R = self.Frand(M, SK2)
         R1, R2 = R[:self.n // 8], R[self.n // 8:]
         D = self.Hdigest(R1, M)
-        i = int.from_bytes(R2, byteorder=sys.byteorder)
+        i = int.from_bytes(R2, byteorder='big')
         i >>= self.n - self.h
         subh = self.h // self.d
         a = {'level': self.d,

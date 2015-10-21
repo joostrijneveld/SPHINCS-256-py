@@ -1,4 +1,3 @@
-import sys
 from math import ceil, floor, log2
 from bytes_utils import xor, chunkbytes
 
@@ -34,7 +33,7 @@ class WOTSplus(object):
             x //= base
 
     def chainlengths(self, m):
-        M = int.from_bytes(m, byteorder=sys.byteorder)
+        M = int.from_bytes(m, byteorder='little')
         M = list(self.int_to_basew(M, self.w))
         C = sum(self.w - 1 - M[i] for i in range(self.l1))
         C = list(self.int_to_basew(C, self.w))
