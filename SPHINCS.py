@@ -2,15 +2,17 @@
 """Python implementation of the SPHINCS signature scheme
 
 Usage:
-    SPHINCS.py keygen [-o FILE|--output FILE]
-    SPHINCS.py sign [-i FILE|--input FILE] [-o FILE|--output FILE]
-    SPHINCS.py verify [-i FILE|--input FILE]
+    SPHINCS.py keygen [--secret-key FILE] [--public-key FILE]
+    SPHINCS.py sign [-m FILE|--message FILE] [--secret-key FILE] [-s FILE|--signature FILE]
+    SPHINCS.py verify [-m FILE|--message FILE] [-s FILE|--signature FILE] [--public-key FILE]
     SPHINCS.py (-h|--help)
 
 Options:
-    -o FILE, --output FILE  Specify an output file.
-    -i FILE, --input FILE   Specify an input file.
-    -h --help               Show this help screen.
+    -s FILE, --signature FILE    Specify a signature file.
+    -m FILE, --message FILE      Specify a message file.
+             --secret-key FILE   Specify a secret-key file.
+             --public-key FILE   Specify a public-key file.
+    -h --help                    Show this help screen.
 """
 
 import sys
@@ -149,38 +151,90 @@ class SPHINCS(object):
             i >>= subh
         return PK1 == pk
 
+    def pack(self, x):
+        if type(x) is bytes:
+            return x
+        if type(x) is int:  # needed for index i
+            return int.to_bytes(x, length=(self.h+7)//8, byteorder='little')
+        return b''.join([self.pack(a) for a in iter(x)])
+
+    def unpack(self, sk=None, pk=None, sig=None, byteseq=None):
+        n = self.n // 8
+        if sk:
+            return sk[:n], sk[n:2*n], self.unpack(byteseq=sk[2*n:])
+        elif pk:
+            return pk[:n], self.unpack(byteseq=pk[n:])
+        elif byteseq:
+            return [byteseq[i:i+n] for i in range(0, len(byteseq), n)]
+        elif sig:
+            def prefix(x, n):
+                return x[:n], x[n:]
+            i, sig = prefix(sig, (self.h+7)//8)
+            i = int.from_bytes(i, byteorder='little')
+            R1, sig = prefix(sig, n)
+            sig_horst = []
+            for _ in range(self.k):
+                sk, sig = prefix(sig, n)
+                auth, sig = prefix(sig, (self.tau - self.horst.x)*n)
+                sig_horst.append((sk, self.unpack(byteseq=auth)))
+            sigma_k, sig = prefix(sig, (1 << self.horst.x) * n)
+            sig_horst.append(self.unpack(byteseq=sigma_k))
+            wots = []
+            for _ in range(self.d):
+                wots_sig, sig = prefix(sig, self.wots.l*n)
+                path, sig = prefix(sig, self.h//self.d*n)
+                wots.append(self.unpack(byteseq=wots_sig))
+                wots.append(self.unpack(byteseq=path))
+            return (i, R1, sig_horst) + tuple(wots)
+
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)
     sphincs256 = SPHINCS()
 
-    for f in ['--input', '--output']:
+    for f in ['--signature', '--message', '--secret-key', '--public-key']:
         if args[f] is None or args[f] == '-':
             args[f] = None
+    if args['keygen']:
+        ihandles, ohandles = [], ['--secret-key', '--public-key']
+    elif args['sign']:
+        ihandles, ohandles = ['--message', '--secret-key'], ['--signature']
+    elif args['verify']:
+        ihandles, ohandles = ['--message', '--public-key', '--signature'], []
 
-    if args['--input'] is None:
-        ifile = sys.stdin.buffer
-    else:
-        ifile = open(args['--input'], 'rb')
-    if args['--output'] is None:
-        ofile = sys.stdout.buffer
-    else:
-        ofile = open(args['--output'], 'wb')
+    fh = {}
+    for f in ihandles:
+        if args[f] is None:
+            fh[f[2:]] = sys.stdin.buffer
+        else:
+            fh[f[2:]] = open(args[f], 'rb')
+    for f in ohandles:
+        if args[f] is None:
+            fh[f[2:]] = sys.stdout.buffer
+        else:
+            fh[f[2:]] = open(args[f], 'wb')
 
     if args['keygen']:
-        keys = sphincs256.keygen()
-        ofile.write(keys)
+        print("Generating keys..", file=sys.stderr)
+        sk, pk = sphincs256.keygen()
+        fh['secret-key'].write(sphincs256.pack(sk))
+        fh['public-key'].write(sphincs256.pack(pk))
         print('Wrote keys', file=sys.stderr)
     elif args['sign']:
-        message = ifile.read()
-        signature = sphincs256.sign(message)
-        ofile.write(signature)
+        message = fh['message'].read()
+        sk = sphincs256.unpack(sk=fh['secret-key'].read())
+        print("Signing..", file=sys.stderr)
+        signature = sphincs256.sign(message, sk)
+        fh['signature'].write(sphincs256.pack(signature))
         print('Wrote signature', file=sys.stderr)
     elif args['verify']:
-        message_signature = ifile.read()
-        if verify(message_signature):
+        message = fh['message'].read()
+        sig = sphincs256.unpack(sig=fh['signature'].read())
+        pk = sphincs256.unpack(pk=fh['public-key'].read())
+        print("Verifying..", file=sys.stderr)
+        if sphincs256.verify(message, sig, pk):
             print('Verification succeeded', file=sys.stderr)
         else:
             print('Verification failed', file=sys.stderr)
 
-    ifile.close()
-    ofile.close()
+    for f in fh.values():
+        f.close()
