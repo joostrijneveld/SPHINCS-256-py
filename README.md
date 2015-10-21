@@ -1,6 +1,6 @@
 ### SPHINCS in Python
 
-This repository contains an implementation of SPHINCS, in Python. The goal for this implementation was not to be fast, secure, or in any other way useable in a production environment. This cannot be stressed enough. **DO NOT USE THIS** for any signature that you or others rely on in any way.
+This repository contains an implementation of the hash-based signature scheme [SPHINCS](http://sphincs.cr.yp.to/), in Python. The goal for this implementation was not to be fast, secure, or in any other way useable in a production environment. This cannot be stressed enough. **DO NOT USE THIS** for any signature that you or others rely on in any way.
 
 Instead, this code was written to aid in understanding of the SPHINCS scheme, and to make it easier to experiment with the individual parts. The main aim was for the code to be flexible and (to some extent) readable.
 
