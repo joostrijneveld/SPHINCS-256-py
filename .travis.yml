@@ -1,0 +1,17 @@
+language: python
+sudo: false
+
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+
+script:
+  - nose2
+
+after_success:
+  - coveralls
