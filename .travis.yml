@@ -11,7 +11,7 @@ install:
   - pip install coveralls
 
 script:
-  - nose2
+  - coverage run -m nose2
 
 after_success:
   - coveralls
