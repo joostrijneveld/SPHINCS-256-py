@@ -1,4 +1,4 @@
-### SPHINCS in Python
+## SPHINCS in Python [![Build Status](https://travis-ci.org/joostrijneveld/SPHINCS-py.svg?branch=master)](https://travis-ci.org/joostrijneveld/SPHINCS-py) [![Coverage Status](https://coveralls.io/repos/joostrijneveld/SPHINCS-py/badge.svg?branch=master&service=github)](https://coveralls.io/github/joostrijneveld/SPHINCS-py?branch=master)
 
 This repository contains an implementation of the hash-based signature scheme [SPHINCS](http://sphincs.cr.yp.to/), in Python. The goal for this implementation was not to be fast, secure, or in any other way useable in a production environment. This cannot be stressed enough. **DO NOT USE THIS** for any signature that you or others rely on in any way.
 
